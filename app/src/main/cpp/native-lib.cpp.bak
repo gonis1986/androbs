@@ -1,0 +1,33 @@
+#include <jni.h>
+#include <android/log.h>
+#include <gst/gst.h>
+
+#define LOG_TAG "GStreamerNative"
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_gonis_androbs_GStreamerHelper_initGStreamer(JNIEnv *env, jobject thiz) {
+    gst_init(nullptr, nullptr);
+    LOGD("GStreamer inizializzato correttamente");
+
+    GstElement *pipeline = gst_parse_launch("videotestsrc ! autovideosink", nullptr);
+    if (!pipeline) {
+        LOGD("Errore nel parsing della pipeline");
+        return;
+    }
+
+    gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    LOGD("Pipeline GStreamer avviata");
+}
+
+// Funzione correttamente posizionata FUORI da initGStreamer
+extern "C" JNIEXPORT void JNICALL
+Java_com_gonis_androbs_CameraXHelper_sendToGStreamer(JNIEnv *env, jobject thiz, jbyteArray data) {
+    LOGE("sendToGStreamer chiamata!");
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_gonis_androbs_MainActivityKt_initGStreamer(JNIEnv *env, jobject thiz) {
+    // Implementa qui la logica di inizializzazione di GStreamer
+}

@@ -1,0 +1,52 @@
+cmake_minimum_required(VERSION 3.22.1)
+project("androbs")
+
+# Percorso principale di GStreamer
+set(GSTREAMER_DIR "C:/gstreamer/arm64")
+set(CMAKE_PREFIX_PATH "${GSTREAMER_DIR}/lib/pkgconfig" CACHE PATH "GStreamer SDK path")
+
+# Imposta la variabile di ambiente PKG_CONFIG_PATH
+set(ENV{PKG_CONFIG_PATH} "${GSTREAMER_DIR}/lib/pkgconfig")
+set(ENV{PKG_CONFIG_EXECUTABLE} "C:/msys64/usr/bin/pkg-config.exe")
+
+# Trova le librerie di GStreamer
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0 gstreamer-app-1.0 gstreamer-video-1.0)
+
+find_library(FFI_LIB NAMES ffi libffi PATHS C:/gstreamer/arm64/lib)
+include_directories(C:/gstreamer/arm64/include)
+find_library(ICONV_LIB NAMES iconv libiconv PATHS C:/gstreamer/arm64/lib)
+include_directories(C:/gstreamer/arm64/include)
+find_library(PCRE2_LIB NAMES pcre2-8 libpcre2-8 PATHS C:/gstreamer/arm64/lib)
+include_directories(C:/gstreamer/arm64/include)
+
+
+
+# Aggiungi le directory di include di GStreamer
+include_directories(${GSTREAMER_INCLUDE_DIRS})
+
+# Linka le librerie di GStreamer (se richiesto)
+link_directories(${GSTREAMER_DIR}/lib)
+
+
+find_library(log-lib log)
+add_library(native-lib SHARED native-lib.cpp)
+target_link_libraries(native-lib
+        ${GSTREAMER_LIBRARIES}
+        gmodule-2.0
+        glib-2.0
+        gobject-2.0
+        gstapp-1.0
+        gstvideo-1.0
+        gstbase-1.0
+        gstreamer-1.0
+		ffi
+		iconv
+		pcre2-8
+        intl
+        atomic
+        m
+		log
+)
+
+
