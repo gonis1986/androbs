@@ -11,7 +11,10 @@
 
 <script>
     // Ottiene l'IP dinamico dal browser
-    var serverHost = window.location.hostname;
+    //var serverHost = window.location.hostname;
+    //var ws = new WebSocket(`ws://${serverHost}:8081/`);
+
+    var serverHost = "192.168.1.91";  // IP statico dell'Android
     var ws = new WebSocket(`ws://${serverHost}:8081/`);
 
     ws.onopen = function() {

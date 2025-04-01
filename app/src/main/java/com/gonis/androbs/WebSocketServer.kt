@@ -7,6 +7,7 @@ import org.java_websocket.server.WebSocketServer
 import java.net.InetSocketAddress
 
 class WebSocketServer(port: Int) : WebSocketServer(InetSocketAddress(port)) {
+    var isRunning: Boolean = false
     override fun onOpen(conn: WebSocket, handshake: ClientHandshake?) {
         Log.d("WebSocketServer", "Nuova connessione da ${conn.remoteSocketAddress}")
         conn.send("{\"type\": \"connection\", \"message\": \"Connessione stabilita\"}")
