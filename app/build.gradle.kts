@@ -84,8 +84,10 @@ dependencies {
     implementation("androidx.camera:camera-view:1.0.0-alpha26")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("io.github.webrtc-sdk:android:125.6422.07")
-    implementation("androidx.camera:camera-core:1.1.0")
-    implementation("androidx.camera:camera-camera2:1.1.0")
-    implementation("androidx.camera:camera-lifecycle:1.1.0")
+    implementation("androidx.camera:camera-core:1.3.0")
+    implementation("androidx.camera:camera-camera2:1.3.0")
+    implementation("androidx.camera:camera-lifecycle:1.3.0")
+    implementation("androidx.camera:camera-view:1.3.0")
     implementation("org.nanohttpd:nanohttpd:2.3.1")
+    implementation("org.java-websocket:Java-WebSocket:1.5.2")
 }

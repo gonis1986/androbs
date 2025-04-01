@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Streaming</title>
+</head>
+<body>
+<h1>Live Stream</h1>
+<video id="remoteVideo" autoplay playsinline></video>
+
+<script>
+    // Ottiene l'IP dinamico dal browser
+    var serverHost = window.location.hostname;
+    var ws = new WebSocket(`ws://${serverHost}:8081/`);
+
+    ws.onopen = function() {
+        console.log("WebSocket aperto!");
+        ws.send(JSON.stringify({ type: "connection", message: "Ciao dal browser!" }));
+    };
+
+    ws.onmessage = function(event) {
+        console.log("Messaggio ricevuto: " + event.data);
+    };
+
+    ws.onclose = function() {
+        console.log("WebSocket chiuso!");
+    };
+
+    // Configurazione WebRTC
+    const signalingServer = new WebSocket(`ws://${serverHost}:8081`);
+    let peerConnection;
+    const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+    signalingServer.onmessage = async (message) => {
+        const data = JSON.parse(message.data);
+
+        if (data.offer) {
+            console.log("Ricevuta offerta WebRTC");
+            peerConnection = new RTCPeerConnection(config);
+
+            peerConnection.ontrack = (event) => {
+                document.getElementById('remoteVideo').srcObject = event.streams[0];
+            };
+
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            signalingServer.send(JSON.stringify({ answer }));
+        } else if (data.candidate) {
+            peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
+    };
+</script>
+</body>
+</html>
