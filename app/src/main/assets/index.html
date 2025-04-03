@@ -1,59 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Streaming</title>
+    <title>WebSocket Streaming</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+        #videoFrame { background: #000; width: 100%; max-width: 640px; }
+        #status { padding: 10px; margin: 10px 10px; border-radius: 4px; display: inline-block; }
+        .connected { background: #d4edda; color: #155724; }
+        .disconnected { background: #f8d7da; color: #721c24; }
+    </style>
 </head>
 <body>
-<h1>Live Stream</h1>
-<video id="remoteVideo" autoplay playsinline></video>
+
+<h1>Live Stream Viewer</h1>
+<div id="status" class="disconnected">Disconnesso</div>
+<br>
+<img id="videoFrame" width="640" height="480" alt="Streaming non disponibile">
+<br>
+<button id="connectBtn">Connetti</button>
 
 <script>
-    // Ottiene l'IP dinamico dal browser
-    //var serverHost = window.location.hostname;
-    //var ws = new WebSocket(`ws://${serverHost}:8081/`);
+    let serverHost = window.location.hostname; // Usa l'IP del server
+    let ws;
+    const statusDiv = document.getElementById('status');
+    const videoFrame = document.getElementById('videoFrame');
+    const connectBtn = document.getElementById('connectBtn');
 
-    var serverHost = "192.168.1.91";  // IP statico dell'Android
-    var ws = new WebSocket(`ws://${serverHost}:8081/`);
+    function updateStatus(message, isConnected) {
+        statusDiv.textContent = message;
+        statusDiv.className = isConnected ? 'connected' : 'disconnected';
+    }
 
-    ws.onopen = function() {
-        console.log("WebSocket aperto!");
-        ws.send(JSON.stringify({ type: "connection", message: "Ciao dal browser!" }));
-    };
+    function connect() {
+        if (ws) ws.close(); // Chiude eventuali connessioni precedenti
+        updateStatus("Connessione in corso...", false);
 
-    ws.onmessage = function(event) {
-        console.log("Messaggio ricevuto: " + event.data);
-    };
+        ws = new WebSocket(`ws://${serverHost}:8081`);
 
-    ws.onclose = function() {
-        console.log("WebSocket chiuso!");
-    };
+        ws.onopen = () => updateStatus("Connesso al server", true);
 
-    // Configurazione WebRTC
-    const signalingServer = new WebSocket(`ws://${serverHost}:8081`);
-    let peerConnection;
-    const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+        ws.onmessage = (msg) => {
+            if (msg.data instanceof Blob) {
+                let url = URL.createObjectURL(msg.data);
+                videoFrame.src = url; // Mostra il frame ricevuto
+            }
+        };
 
-    signalingServer.onmessage = async (message) => {
-        const data = JSON.parse(message.data);
+        ws.onclose = () => {
+            updateStatus("Disconnesso dal server", false);
+            videoFrame.src = ""; // Cancella l'immagine
+        };
 
-        if (data.offer) {
-            console.log("Ricevuta offerta WebRTC");
-            peerConnection = new RTCPeerConnection(config);
+        ws.onerror = (error) => {
+            console.error("Errore WebSocket:", error);
+            updateStatus("Errore connessione", false);
+        };
+    }
 
-            peerConnection.ontrack = (event) => {
-                document.getElementById('remoteVideo').srcObject = event.streams[0];
-            };
+    connectBtn.addEventListener('click', connect);
+    connect(); // Prova a connettersi automaticamente
 
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            signalingServer.send(JSON.stringify({ answer }));
-        } else if (data.candidate) {
-            peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-        }
-    };
 </script>
 </body>
 </html>

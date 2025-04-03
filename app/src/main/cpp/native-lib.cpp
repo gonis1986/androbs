@@ -37,3 +37,4 @@ Java_com_gonis_androbs_MainActivityKt_initGStreamer(JNIEnv *env, jobject thiz) {
     // Aggiungi l'inizializzazione di GStreamer se necessario
 }
 
+
